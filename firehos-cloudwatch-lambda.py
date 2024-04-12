@@ -5,6 +5,7 @@ import io
 import json
 
 output = []
+# Metadata to be added to the log events, can be added as environment variables
 company_metadata = {"company_id": "1234567", "code": "12222", "city": "NYC"}
 
 def gzip_b64encode(data):
@@ -17,10 +18,11 @@ def gzip_b64encode(data):
 def lambda_handler(event, context):
     for record in event['records']:
         compressed_payload = base64.b64decode(record['data'])
-        uncompressed_payload = gzip.decompress(compressed_payload)
+        uncompressed_payload = gzip.decompress(compressed_payload) #decompress payload
         payload = json.loads(uncompressed_payload)
         
         processed_events = []
+        #loop through log events and add metadata to log string
         for log_event in payload['logEvents']:
             message = json.dumps(company_metadata) + ' ' + log_event['message'] + ' ' 
             log_event['message'] = message
@@ -29,7 +31,6 @@ def lambda_handler(event, context):
             
         payload['logEvents'] = processed_events
         
-        # Do custom processing on the payload here
         output_record = {
             'recordId': record['recordId'],
             'result': 'Ok',
